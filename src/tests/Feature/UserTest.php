@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -14,7 +15,7 @@ class UserTest extends TestCase
     use RefreshDatabase;
     use WithFaker;
 
-    public function testShouldListUsersPaginate()
+    public function testShouldListUsersPagined()
     {
         User::factory(30)->create();
         $response = $this->get('/protected/users/10/1/');
@@ -29,6 +30,11 @@ class UserTest extends TestCase
                     'id',
                     'name',
                     'email',
+                    'role' => [
+                        'id',
+                        'name',
+                        'code',
+                    ],
                     'created_at',
                     'updated_at'
                 ]
@@ -45,9 +51,27 @@ class UserTest extends TestCase
             'name' => $user->name,
             'email' => $user->email
         ]);
+        $response->assertJsonStructure([
+            'id',
+            'name',
+            'email',
+            'role' => [
+                'id',
+                'name',
+                'code',
+            ],
+            'created_at',
+            'updated_at'
+        ]);
     }
     public function testShouldStoreUser()
     {
+        //create role
+        //register defual role
+        Role::factory()->create([
+            'name' => 'regular',
+            'code' => 'REGULAR',
+        ]);
         $params = [
             'name' => $this->faker->name,
             'email' => $this->faker->email,
