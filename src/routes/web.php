@@ -15,22 +15,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
-
-
-Route::group(['prefix' => 'protected'], function () {
-    //routes to crud user
-    Route::get('/users/{elementsPerPage}/{actualPage}/{searchField?}', [UserController::class, 'index']);
-    Route::get('user/{id}', [UserController::class, 'show']);
-    Route::put('user/{id}', [UserController::class, 'update']);
-    Route::post('user', [UserController::class, 'store']);
-    Route::delete('user/{id}', [UserController::class, 'destroy']);
-    //route to crud role
-    Route::get('/roles/{elementsPerPage}/{actualPage}/{searchField?}', [RoleController::class, 'index']);
-    Route::get('role/{id}', [RoleController::class, 'show']);
-    Route::put('role/{id}', [RoleController::class, 'update']);
-    Route::post('role', [RoleController::class, 'store']);
-    Route::delete('role/{id}', [RoleController::class, 'destroy']);
+Route::get('/hello', function () {
+    return "Hello World";
 });
