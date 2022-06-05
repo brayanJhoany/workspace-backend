@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Role;
 use App\Models\User;
 use App\Util\PaginatorUtil;
 use Illuminate\Http\Request;
@@ -15,7 +16,11 @@ class UserController extends Controller
         if (!is_numeric($elementsPerPage) || !is_numeric($actualPage)) {
             return response()->json(['error' => 'Invalid parameters'], 400);
         }
-        $query = User::orderby('created_at', 'desc');
+        $query = User::with(['role' => function ($query) {
+            $query->select('id', 'name', 'code');
+        }])
+            ->orderby('created_at', 'desc');
+
         if ($searchField !== "") {
             $query = $query->where('name', 'like', "%{$searchField}")
                 ->orWhere('email', 'like', "%{$searchField}");
@@ -39,10 +44,19 @@ class UserController extends Controller
         if ($validator->fails()) {
             return response()->json($validator->errors(), 400);
         }
+        if (isset($request->roleCode)) {
+            $role = Role::where('code', $request->roleCode)->first(['id']);
+            if (!$role) {
+                return response()->json(['error' => 'Invalid role code'], 400);
+            }
+        } else {
+            $role = Role::where('code', Role::DEFAULT_ROLE)->first(['id']);
+        }
         $user           = new User();
         $user->name     = $request->name;
         $user->email    = $request->email;
         $user->password = bcrypt($request->password);
+        $user->role_id  = $role->id;
         $user->save();
         return response()->json(["message" => "User save successfully", "user" => $user], 201);
     }
@@ -53,6 +67,8 @@ class UserController extends Controller
      */
     public function update(Request $request, $id)
     {
+        //* const
+        $role = null;
         $user = User::find($id);
         if (!$user) {
             return response()->json(["message" => "User not found"], 404);
@@ -61,9 +77,16 @@ class UserController extends Controller
         if ($validator->fails()) {
             return response()->json($validator->errors(), 400);
         }
+        if (isset($request->roleCode)) {
+            $role = Role::where('code', $request->roleCode)->first(['id']);
+            if (!$role) {
+                return response()->json(['error' => 'Invalid role code'], 400);
+            }
+        }
         $user->name     = isset($request->name) ? $request->name : $user->name;
         $user->email    = isset($request->email) ? $request->email : $user->email;
         $user->password = isset($request->password) ? bcrypt($request->password) : $user->password;
+        $user->role_id  = $role ? $role->id : $user->role_id;
         $user->save();
         return response()->json(["message" => "User update successfully", "user" => $user], 200);
     }
@@ -73,7 +96,10 @@ class UserController extends Controller
      */
     public function show($id)
     {
-        $user = User::find($id);
+        $user = User::where('id', $id)
+            ->with(['role' => function ($query) {
+                $query->select('id', 'name', 'code');
+            }])->first();
         if (!$user) {
             return response()->json(['message' => 'User not found'], 404);
         }
@@ -101,6 +127,7 @@ class UserController extends Controller
             'name'      => 'required|string|max:255',
             'email'     => 'required|string|email|max:255|unique:users',
             'password'  => 'required|string|min:6|max:20',
+            'roleCode'  => 'nullable|string|max:255',
         ];
     }
     /**

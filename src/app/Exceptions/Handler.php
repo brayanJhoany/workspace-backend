@@ -38,4 +38,12 @@ class Handler extends ExceptionHandler
             //
         });
     }
+    //route not found
+    public function render($request, Throwable $e)
+    {
+        if ($e instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException) {
+            return response()->json(['error' => 'Not found'], 404);
+        }
+        return parent::render($request, $e);
+    }
 }
