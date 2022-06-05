@@ -22,7 +22,7 @@ class UserFactory extends Factory
             'password' => bcrypt($this->faker->password(6, 15)), // password
             'remember_token' => Str::random(10),
             "role_id" => function () {
-                return Role::factory()->create()->id;
+                return Role::all()->random()->id;
             },
         ];
     }
