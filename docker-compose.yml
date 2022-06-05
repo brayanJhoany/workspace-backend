@@ -11,7 +11,8 @@ services:
       - "443:443"
     volumes:
       - ./src/:/var/www/html
-      - ./docker/nginx/default.conf:/etc/nginx/default.conf
+      - ./docker/nginx/nginx.conf:/etc/nginx/default.conf
+      - ./docker/nginx/sites/:/etc/nginx/conf.d/
     networks:
       - app-network
 
